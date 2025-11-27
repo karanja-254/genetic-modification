@@ -86,17 +86,34 @@ CREATE TABLE IF NOT EXISTS pairings (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================================
--- Sample Data (Optional)
--- Uncomment the following lines if you want sample data for testing
+-- Sample Data
+-- Default login accounts (password for all: password123)
 -- ============================================================================
 
--- Sample admin user (password: admin123)
--- INSERT INTO users (id, email, password_hash, name, age, region, role) VALUES
--- (UUID(), 'admin@goms.com', '$2a$10$YourHashedPasswordHere', 'Admin User', 30, 'Metro Manila', 'admin');
+-- Admin user (email: admin@goms.com, password: password123)
+INSERT INTO users (email, password_hash, name, age, region, role) VALUES
+('admin@goms.com', '$2a$10$rQ6LzJXLbzJ7YZFVQCJRzO5qKxK5VfkKqmZz5fOWmJXLQKJZXJQXC', 'Admin User', 35, 'USA', 'admin');
 
--- Sample regular user (password: user123)
--- INSERT INTO users (id, email, password_hash, name, age, region, role) VALUES
--- (UUID(), 'user@goms.com', '$2a$10$YourHashedPasswordHere', 'Test User', 25, 'Cebu', 'user');
+-- Regular users (password: password123 for all)
+INSERT INTO users (email, password_hash, name, age, region, role) VALUES
+('john@example.com', '$2a$10$rQ6LzJXLbzJ7YZFVQCJRzO5qKxK5VfkKqmZz5fOWmJXLQKJZXJQXC', 'John Doe', 28, 'USA', 'user'),
+('jane@example.com', '$2a$10$rQ6LzJXLbzJ7YZFVQCJRzO5qKxK5VfkKqmZz5fOWmJXLQKJZXJQXC', 'Jane Smith', 32, 'UK', 'user'),
+('bob@example.com', '$2a$10$rQ6LzJXLbzJ7YZFVQCJRzO5qKxK5VfkKqmZz5fOWmJXLQKJZXJQXC', 'Bob Johnson', 45, 'Canada', 'user'),
+('alice@example.com', '$2a$10$rQ6LzJXLbzJ7YZFVQCJRzO5qKxK5VfkKqmZz5fOWmJXLQKJZXJQXC', 'Alice Williams', 29, 'Australia', 'user');
+
+-- ============================================================================
+-- Login Credentials
+-- ============================================================================
+-- Admin Account:
+--   Email: admin@goms.com
+--   Password: password123
+--
+-- User Accounts (all use password: password123):
+--   john@example.com
+--   jane@example.com
+--   bob@example.com
+--   alice@example.com
+-- ============================================================================
 
 -- ============================================================================
 -- End of Schema

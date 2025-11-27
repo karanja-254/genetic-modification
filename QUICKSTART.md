@@ -1,24 +1,47 @@
 # GOMS Quick Start Guide
 
+## IMPORTANT: Login Credentials
+
+After importing the database, use these accounts to login:
+
+### Admin Account
+- **Email:** admin@goms.com
+- **Password:** password123
+- **Access:** Full admin panel, manage all users
+
+### Demo User Accounts
+All users have password: **password123**
+- john@example.com (John Doe - USA)
+- jane@example.com (Jane Smith - UK)
+- bob@example.com (Bob Johnson - Canada)
+- alice@example.com (Alice Williams - Australia)
+
 ## Get Started in 3 Steps
 
-### 1. Start the Server
+### 1. Setup Database (XAMPP)
+
+```
+1. Start MySQL in XAMPP Control Panel
+2. Open phpMyAdmin (http://localhost/phpmyadmin)
+3. Click "SQL" tab
+4. Copy/paste contents of goms_mysql_schema.sql
+5. Click "Go" - this creates database AND demo users
+```
+
+### 2. Start the Server
 
 ```bash
+npm install
 npm start
 ```
 
 The application will be available at **http://localhost:3000**
 
-### 2. Login with Demo Account
+### 3. Login
 
-**Admin Account:**
-- Email: `admin@goms.com`
-- Password: `password123`
+Use any of the demo accounts listed above, or create a new account.
 
-**Or create a new account** by clicking "Get Started" on the homepage.
-
-### 3. Explore Features
+## Explore Features
 
 1. **Add Family Health History** - Record hereditary conditions
 2. **Generate Risk Report** - Get AI-powered risk analysis
@@ -71,9 +94,19 @@ The application will be available at **http://localhost:3000**
 ## Tech Stack Reference
 
 - **Backend**: Node.js + Express
-- **Database**: Supabase (PostgreSQL)
+- **Database**: MySQL (XAMPP)
 - **Auth**: JWT + bcrypt
 - **Frontend**: EJS + Tailwind CSS
+
+## Alternative: Run Seed Script
+
+If you already have the database but need to add demo users:
+
+```bash
+node seed.js
+```
+
+This will add all the demo accounts listed above.
 
 ## Support
 
