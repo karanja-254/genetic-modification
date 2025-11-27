@@ -1,0 +1,136 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
+    <p class="mt-2 text-gray-600">Welcome back, <%= user.name || user.email %></p>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-white overflow-hidden shadow-md rounded-lg border border-gray-200">
+      <div class="px-4 py-5 sm:p-6">
+        <dt class="text-sm font-medium text-gray-500 truncate">
+          Family Health Records
+        </dt>
+        <dd class="mt-1 text-3xl font-semibold text-gray-900">
+          <%= historyCount %>
+        </dd>
+        <div class="mt-4">
+          <a href="/history" class="text-sm font-medium text-blue-600 hover:text-blue-500">
+            View records →
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white overflow-hidden shadow-md rounded-lg border border-gray-200">
+      <div class="px-4 py-5 sm:p-6">
+        <dt class="text-sm font-medium text-gray-500 truncate">
+          Latest Risk Score
+        </dt>
+        <dd class="mt-1 text-3xl font-semibold <%= latestPrediction ? (latestPrediction.risk_score >= 70 ? 'text-red-600' : latestPrediction.risk_score >= 40 ? 'text-yellow-600' : 'text-green-600') : 'text-gray-400' %>">
+          <%= latestPrediction ? latestPrediction.risk_score : 'N/A' %>
+        </dd>
+        <div class="mt-4">
+          <a href="/predictions" class="text-sm font-medium text-blue-600 hover:text-blue-500">
+            View reports →
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white overflow-hidden shadow-md rounded-lg border border-gray-200">
+      <div class="px-4 py-5 sm:p-6">
+        <dt class="text-sm font-medium text-gray-500 truncate">
+          Compatible Pairings
+        </dt>
+        <dd class="mt-1 text-3xl font-semibold text-gray-900">
+          <%= pairings.length %>
+        </dd>
+        <div class="mt-4">
+          <a href="/pairings" class="text-sm font-medium text-blue-600 hover:text-blue-500">
+            View pairings →
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <% if (latestPrediction) { %>
+  <div class="bg-white shadow-md rounded-lg border border-gray-200 p-6 mb-8">
+    <h2 class="text-xl font-semibold text-gray-900 mb-4">Latest Risk Assessment</h2>
+    <div class="flex items-center mb-4">
+      <div class="flex-shrink-0">
+        <div class="w-20 h-20 rounded-full <%= latestPrediction.risk_score >= 70 ? 'bg-red-100' : latestPrediction.risk_score >= 40 ? 'bg-yellow-100' : 'bg-green-100' %> flex items-center justify-center">
+          <span class="text-2xl font-bold <%= latestPrediction.risk_score >= 70 ? 'text-red-600' : latestPrediction.risk_score >= 40 ? 'text-yellow-600' : 'text-green-600' %>">
+            <%= latestPrediction.risk_score %>
+          </span>
+        </div>
+      </div>
+      <div class="ml-6 flex-1">
+        <p class="text-gray-700"><%= latestPrediction.condition_summary %></p>
+        <p class="text-sm text-gray-500 mt-2">
+          Generated on <%= new Date(latestPrediction.created_at).toLocaleDateString() %>
+        </p>
+      </div>
+    </div>
+  </div>
+  <% } %>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div class="bg-white shadow-md rounded-lg border border-gray-200 p-6">
+      <h2 class="text-xl font-semibold text-gray-900 mb-4">Recent Family History</h2>
+      <% if (historyItems && historyItems.length > 0) { %>
+      <div class="space-y-4">
+        <% historyItems.slice(0, 5).forEach(item => { %>
+        <div class="border-l-4 border-blue-500 pl-4">
+          <h3 class="font-medium text-gray-900"><%= item.disease_name %></h3>
+          <p class="text-sm text-gray-600">Relative: <%= item.relative %></p>
+          <% if (item.notes) { %>
+          <p class="text-sm text-gray-500 mt-1"><%= item.notes %></p>
+          <% } %>
+        </div>
+        <% }); %>
+      </div>
+      <% } else { %>
+      <p class="text-gray-500 text-center py-8">No family history records yet. <a href="/history" class="text-blue-600 hover:text-blue-500 font-medium">Add your first record</a></p>
+      <% } %>
+    </div>
+
+    <div class="bg-white shadow-md rounded-lg border border-gray-200 p-6">
+      <h2 class="text-xl font-semibold text-gray-900 mb-4">Top Pairings</h2>
+      <% if (pairings && pairings.length > 0) { %>
+      <div class="space-y-4">
+        <% pairings.slice(0, 5).forEach(pairing => { %>
+        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
+          <div>
+            <p class="font-medium text-gray-900">Match Score: <%= pairing.match_score %></p>
+            <p class="text-sm text-gray-600">Diversity: <span class="capitalize"><%= pairing.diversity_level %></span></p>
+          </div>
+          <div class="text-right">
+            <span class="px-3 py-1 text-sm font-semibold rounded-full <%= pairing.match_score >= 70 ? 'bg-green-100 text-green-800' : pairing.match_score >= 40 ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800' %>">
+              <%= pairing.match_score %>%
+            </span>
+          </div>
+        </div>
+        <% }); %>
+      </div>
+      <% } else { %>
+      <p class="text-gray-500 text-center py-8">No pairings generated yet. <a href="/pairings" class="text-blue-600 hover:text-blue-500 font-medium">Generate pairings</a></p>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
+    <h3 class="text-lg font-semibold text-blue-900 mb-2">Quick Actions</h3>
+    <div class="flex flex-wrap gap-3">
+      <a href="/history" class="px-4 py-2 bg-white border border-blue-300 text-blue-700 rounded-md hover:bg-blue-50 transition font-medium">
+        Add Family History
+      </a>
+      <a href="/predictions" class="px-4 py-2 bg-white border border-blue-300 text-blue-700 rounded-md hover:bg-blue-50 transition font-medium">
+        Generate Risk Report
+      </a>
+      <a href="/pairings" class="px-4 py-2 bg-white border border-blue-300 text-blue-700 rounded-md hover:bg-blue-50 transition font-medium">
+        View Pairings
+      </a>
+    </div>
+  </div>
+</div>

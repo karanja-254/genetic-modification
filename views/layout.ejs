@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= typeof title !== 'undefined' ? title + ' - ' : '' %>GOMS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <% if (typeof user !== 'undefined' && user) { %>
+  <nav class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16">
+        <div class="flex">
+          <div class="flex-shrink-0 flex items-center">
+            <a href="/dashboard" class="text-2xl font-bold text-blue-600">GOMS</a>
+          </div>
+          <div class="hidden sm:ml-8 sm:flex sm:space-x-8">
+            <a href="/dashboard" class="border-transparent text-gray-700 hover:border-blue-500 hover:text-blue-600 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition">
+              Dashboard
+            </a>
+            <a href="/history" class="border-transparent text-gray-700 hover:border-blue-500 hover:text-blue-600 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition">
+              Family History
+            </a>
+            <a href="/predictions" class="border-transparent text-gray-700 hover:border-blue-500 hover:text-blue-600 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition">
+              Risk Reports
+            </a>
+            <a href="/pairings" class="border-transparent text-gray-700 hover:border-blue-500 hover:text-blue-600 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition">
+              Pairings
+            </a>
+            <% if (user.role === 'admin') { %>
+            <a href="/admin" class="border-transparent text-gray-700 hover:border-blue-500 hover:text-blue-600 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition">
+              Admin
+            </a>
+            <% } %>
+          </div>
+        </div>
+        <div class="flex items-center">
+          <span class="text-sm text-gray-600 mr-4">
+            <%= user.name || user.email %>
+            <% if (user.role === 'admin') { %>
+            <span class="ml-2 px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">Admin</span>
+            <% } %>
+          </span>
+          <a href="/logout" class="ml-4 px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition">
+            Logout
+          </a>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <% } %>
+
+  <main>
+    <%- body %>
+  </main>
+
+  <footer class="bg-white border-t border-gray-200 mt-12">
+    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+      <p class="text-center text-sm text-gray-500">
+        &copy; 2025 GOMS - Genetic Optimization Management System. All rights reserved.
+      </p>
+    </div>
+  </footer>
+</body>
+</html>
