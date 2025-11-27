@@ -1,5 +1,5 @@
 const express = require('express');
-const supabase = require('../config/supabase');
+const db = require('../config/database');
 const { authMiddleware, adminMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
@@ -9,31 +9,34 @@ router.use(adminMiddleware);
 
 router.get('/', async (req, res) => {
   try {
-    const { data: users, count: userCount } = await supabase
-      .from('users')
-      .select('*', { count: 'exact' })
-      .order('created_at', { ascending: false });
+    const [users] = await db.query(
+      'SELECT * FROM users ORDER BY created_at DESC'
+    );
 
-    const { count: historyCount } = await supabase
-      .from('family_history')
-      .select('id', { count: 'exact', head: true });
+    const [userCountResult] = await db.query(
+      'SELECT COUNT(*) as count FROM users'
+    );
 
-    const { count: predictionCount } = await supabase
-      .from('predictions')
-      .select('id', { count: 'exact', head: true });
+    const [historyCountResult] = await db.query(
+      'SELECT COUNT(*) as count FROM family_history'
+    );
 
-    const { count: pairingCount } = await supabase
-      .from('pairings')
-      .select('id', { count: 'exact', head: true });
+    const [predictionCountResult] = await db.query(
+      'SELECT COUNT(*) as count FROM predictions'
+    );
+
+    const [pairingCountResult] = await db.query(
+      'SELECT COUNT(*) as count FROM pairings'
+    );
 
     res.render('admin', {
       user: req.user,
       users: users || [],
       stats: {
-        userCount: userCount || 0,
-        historyCount: historyCount || 0,
-        predictionCount: predictionCount || 0,
-        pairingCount: pairingCount || 0
+        userCount: userCountResult[0].count || 0,
+        historyCount: historyCountResult[0].count || 0,
+        predictionCount: predictionCountResult[0].count || 0,
+        pairingCount: pairingCountResult[0].count || 0
       }
     });
   } catch (error) {
@@ -49,10 +52,10 @@ router.post('/delete-user/:id', async (req, res) => {
       return res.redirect('/admin?error=cannot_delete_self');
     }
 
-    await supabase
-      .from('users')
-      .delete()
-      .eq('id', id);
+    await db.query(
+      'DELETE FROM users WHERE id = ?',
+      [id]
+    );
 
     res.redirect('/admin?success=user_deleted');
   } catch (error) {
@@ -62,10 +65,9 @@ router.post('/delete-user/:id', async (req, res) => {
 
 router.post('/cleanup-data', async (req, res) => {
   try {
-    await supabase
-      .from('pairings')
-      .delete()
-      .neq('id', '00000000-0000-0000-0000-000000000000');
+    await db.query(
+      'DELETE FROM pairings WHERE 1=1'
+    );
 
     res.redirect('/admin?success=data_cleaned');
   } catch (error) {

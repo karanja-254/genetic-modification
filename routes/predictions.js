@@ -1,5 +1,5 @@
 const express = require('express');
-const supabase = require('../config/supabase');
+const db = require('../config/database');
 const { authMiddleware } = require('../middleware/auth');
 const { calculateRiskScore } = require('../utils/riskCalculator');
 
@@ -9,11 +9,10 @@ router.use(authMiddleware);
 
 router.get('/', async (req, res) => {
   try {
-    const { data: predictions } = await supabase
-      .from('predictions')
-      .select('*')
-      .eq('user_id', req.user.id)
-      .order('created_at', { ascending: false });
+    const [predictions] = await db.query(
+      'SELECT * FROM predictions WHERE user_id = ? ORDER BY created_at DESC',
+      [req.user.id]
+    );
 
     res.render('predictions', {
       user: req.user,
@@ -26,10 +25,10 @@ router.get('/', async (req, res) => {
 
 router.post('/generate', async (req, res) => {
   try {
-    const { data: historyItems } = await supabase
-      .from('family_history')
-      .select('*')
-      .eq('user_id', req.user.id);
+    const [historyItems] = await db.query(
+      'SELECT * FROM family_history WHERE user_id = ?',
+      [req.user.id]
+    );
 
     if (!historyItems || historyItems.length === 0) {
       return res.redirect('/predictions?error=no_history');
@@ -37,29 +36,21 @@ router.post('/generate', async (req, res) => {
 
     const { riskScore, summary } = calculateRiskScore(historyItems);
 
-    const { data: existingPrediction } = await supabase
-      .from('predictions')
-      .select('id')
-      .eq('user_id', req.user.id)
-      .maybeSingle();
+    const [existingPredictions] = await db.query(
+      'SELECT id FROM predictions WHERE user_id = ?',
+      [req.user.id]
+    );
 
-    if (existingPrediction) {
-      await supabase
-        .from('predictions')
-        .update({
-          risk_score: riskScore,
-          condition_summary: summary,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', existingPrediction.id);
+    if (existingPredictions.length > 0) {
+      await db.query(
+        'UPDATE predictions SET risk_score = ?, condition_summary = ?, updated_at = NOW() WHERE id = ?',
+        [riskScore, summary, existingPredictions[0].id]
+      );
     } else {
-      await supabase
-        .from('predictions')
-        .insert([{
-          user_id: req.user.id,
-          risk_score: riskScore,
-          condition_summary: summary
-        }]);
+      await db.query(
+        'INSERT INTO predictions (user_id, risk_score, condition_summary) VALUES (?, ?, ?)',
+        [req.user.id, riskScore, summary]
+      );
     }
 
     res.redirect('/predictions?success=generated');

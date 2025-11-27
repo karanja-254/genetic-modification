@@ -1,5 +1,5 @@
 const express = require('express');
-const supabase = require('../config/supabase');
+const db = require('../config/database');
 const { authMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
@@ -8,36 +8,30 @@ router.use(authMiddleware);
 
 router.get('/', async (req, res) => {
   try {
-    const { count: historyCount } = await supabase
-      .from('family_history')
-      .select('id', { count: 'exact', head: true })
-      .eq('user_id', req.user.id);
+    const [historyCountResult] = await db.query(
+      'SELECT COUNT(*) as count FROM family_history WHERE user_id = ?',
+      [req.user.id]
+    );
 
-    const { data: latestPrediction } = await supabase
-      .from('predictions')
-      .select('*')
-      .eq('user_id', req.user.id)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    const [latestPredictionRows] = await db.query(
+      'SELECT * FROM predictions WHERE user_id = ? ORDER BY created_at DESC LIMIT 1',
+      [req.user.id]
+    );
 
-    const { data: pairings } = await supabase
-      .from('pairings')
-      .select('*')
-      .or(`user1_id.eq.${req.user.id},user2_id.eq.${req.user.id}`)
-      .order('match_score', { ascending: false })
-      .limit(5);
+    const [pairings] = await db.query(
+      'SELECT * FROM pairings WHERE user1_id = ? OR user2_id = ? ORDER BY match_score DESC LIMIT 5',
+      [req.user.id, req.user.id]
+    );
 
-    const { data: historyItems } = await supabase
-      .from('family_history')
-      .select('*')
-      .eq('user_id', req.user.id)
-      .order('created_at', { ascending: false });
+    const [historyItems] = await db.query(
+      'SELECT * FROM family_history WHERE user_id = ? ORDER BY created_at DESC',
+      [req.user.id]
+    );
 
     res.render('dashboard', {
       user: req.user,
-      historyCount: historyCount || 0,
-      latestPrediction,
+      historyCount: historyCountResult[0].count || 0,
+      latestPrediction: latestPredictionRows[0] || null,
       pairings: pairings || [],
       historyItems: historyItems || []
     });

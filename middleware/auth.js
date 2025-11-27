@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const supabase = require('../config/supabase');
+const db = require('../config/database');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'goms-secret-key-change-in-production';
 
@@ -13,13 +13,14 @@ const authMiddleware = async (req, res, next) => {
 
     const decoded = jwt.verify(token, JWT_SECRET);
 
-    const { data: user, error } = await supabase
-      .from('users')
-      .select('id, email, name, age, region, role')
-      .eq('id', decoded.userId)
-      .maybeSingle();
+    const [users] = await db.query(
+      'SELECT id, email, name, age, region, role FROM users WHERE id = ?',
+      [decoded.userId]
+    );
 
-    if (error || !user) {
+    const user = users[0];
+
+    if (!user) {
       res.clearCookie('token');
       return res.redirect('/login');
     }

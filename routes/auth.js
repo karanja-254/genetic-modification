@@ -1,7 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const supabase = require('../config/supabase');
+const db = require('../config/database');
 const { JWT_SECRET } = require('../middleware/auth');
 
 const router = express.Router();
@@ -21,32 +21,30 @@ router.post('/register', async (req, res) => {
       return res.render('register', { error: 'Email and password are required' });
     }
 
-    const { data: existingUser } = await supabase
-      .from('users')
-      .select('id')
-      .eq('email', email)
-      .maybeSingle();
+    const [existingUsers] = await db.query(
+      'SELECT id FROM users WHERE email = ?',
+      [email]
+    );
 
-    if (existingUser) {
+    if (existingUsers.length > 0) {
       return res.render('register', { error: 'Email already registered' });
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
 
-    const { data: newUser, error } = await supabase
-      .from('users')
-      .insert([{
-        email,
-        password_hash: passwordHash,
-        name: name || '',
-        age: age ? parseInt(age) : 0,
-        region: region || '',
-        role: 'user'
-      }])
-      .select()
-      .single();
+    const [result] = await db.query(
+      'INSERT INTO users (email, password_hash, name, age, region, role) VALUES (?, ?, ?, ?, ?, ?)',
+      [email, passwordHash, name || '', age ? parseInt(age) : 0, region || '', 'user']
+    );
 
-    if (error) {
+    const [newUserRows] = await db.query(
+      'SELECT * FROM users WHERE email = ?',
+      [email]
+    );
+
+    const newUser = newUserRows[0];
+
+    if (!newUser) {
       return res.render('register', { error: 'Registration failed. Please try again.' });
     }
 
@@ -74,13 +72,14 @@ router.post('/login', async (req, res) => {
       return res.render('login', { error: 'Email and password are required' });
     }
 
-    const { data: user, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('email', email)
-      .maybeSingle();
+    const [users] = await db.query(
+      'SELECT * FROM users WHERE email = ?',
+      [email]
+    );
 
-    if (error || !user) {
+    const user = users[0];
+
+    if (!user) {
       return res.render('login', { error: 'Invalid email or password' });
     }
 

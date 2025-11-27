@@ -1,4 +1,4 @@
-const supabase = require('../config/supabase');
+const db = require('../config/database');
 
 function calculateDiversityLevel(score) {
   if (score >= 70) return 'high';
@@ -35,10 +35,10 @@ async function generatePairings(userId, userHistory, allUsers) {
   const candidateUsers = allUsers.slice(0, Math.min(10, allUsers.length));
 
   for (const candidate of candidateUsers) {
-    const { data: partnerHistory } = await supabase
-      .from('family_history')
-      .select('*')
-      .eq('user_id', candidate.id);
+    const [partnerHistory] = await db.query(
+      'SELECT * FROM family_history WHERE user_id = ?',
+      [candidate.id]
+    );
 
     if (!partnerHistory || partnerHistory.length === 0) {
       continue;

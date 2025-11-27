@@ -1,5 +1,5 @@
 const express = require('express');
-const supabase = require('../config/supabase');
+const db = require('../config/database');
 const { authMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
@@ -8,11 +8,10 @@ router.use(authMiddleware);
 
 router.get('/', async (req, res) => {
   try {
-    const { data: historyItems } = await supabase
-      .from('family_history')
-      .select('*')
-      .eq('user_id', req.user.id)
-      .order('created_at', { ascending: false });
+    const [historyItems] = await db.query(
+      'SELECT * FROM family_history WHERE user_id = ? ORDER BY created_at DESC',
+      [req.user.id]
+    );
 
     res.render('history', {
       user: req.user,
@@ -30,11 +29,10 @@ router.post('/add', async (req, res) => {
     const { disease_name, relative, notes } = req.body;
 
     if (!disease_name || !relative) {
-      const { data: historyItems } = await supabase
-        .from('family_history')
-        .select('*')
-        .eq('user_id', req.user.id)
-        .order('created_at', { ascending: false });
+      const [historyItems] = await db.query(
+        'SELECT * FROM family_history WHERE user_id = ? ORDER BY created_at DESC',
+        [req.user.id]
+      );
 
       return res.render('history', {
         user: req.user,
@@ -44,26 +42,17 @@ router.post('/add', async (req, res) => {
       });
     }
 
-    const { error } = await supabase
-      .from('family_history')
-      .insert([{
-        user_id: req.user.id,
-        disease_name,
-        relative,
-        notes: notes || ''
-      }]);
-
-    if (error) {
-      throw error;
-    }
+    await db.query(
+      'INSERT INTO family_history (user_id, disease_name, relative, notes) VALUES (?, ?, ?, ?)',
+      [req.user.id, disease_name, relative, notes || '']
+    );
 
     res.redirect('/history?success=added');
   } catch (error) {
-    const { data: historyItems } = await supabase
-      .from('family_history')
-      .select('*')
-      .eq('user_id', req.user.id)
-      .order('created_at', { ascending: false });
+    const [historyItems] = await db.query(
+      'SELECT * FROM family_history WHERE user_id = ? ORDER BY created_at DESC',
+      [req.user.id]
+    );
 
     res.render('history', {
       user: req.user,
@@ -78,15 +67,10 @@ router.post('/delete/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
-    const { error } = await supabase
-      .from('family_history')
-      .delete()
-      .eq('id', id)
-      .eq('user_id', req.user.id);
-
-    if (error) {
-      throw error;
-    }
+    await db.query(
+      'DELETE FROM family_history WHERE id = ? AND user_id = ?',
+      [id, req.user.id]
+    );
 
     res.redirect('/history?success=deleted');
   } catch (error) {
